@@ -1,0 +1,11 @@
+<template><main class="text-slate-900"><section id="home" class="ui-band ui-band-hero"><HeroSection :pageData="pageData" /></section><section id="about" class="ui-band ui-band-mint"><AboutSection :pageData="pageData" /></section><section id="properties" class="ui-band ui-band-sand"><CompanyListSection :pageData="pageData" /></section><section id="services" class="ui-band ui-band-mint"><ServicesSection :pageData="pageData" /></section><section id="testimonials" class="ui-band ui-band-sky"><TestimonialsSection :pageData="pageData" /></section><section id="faq" class="ui-band ui-band-mint"><FAQSection :pageData="pageData" /></section><section id="contact" class="ui-band ui-band-sand"><ContactSection :pageData="pageData" /></section></main></template>
+<script setup>
+import { ref, onMounted } from 'vue'; import axios from 'axios'; import API_ENDPOINTS from '@/config/api';
+import HeroSection from '@/components/sections/HeroSection.vue'; import AboutSection from '@/components/sections/AboutSection.vue'; import CompanyListSection from '@/components/sections/companyListSection.vue'; import ServicesSection from '@/components/sections/ServicesSection.vue'; import TestimonialsSection from '@/components/sections/TestimonialsSection.vue'; import FAQSection from '@/components/sections/FAQSection.vue'; import ContactSection from '@/components/sections/ContactSection.vue';
+const pageData = ref({}); const HOME_PAGE = 'Home'; const HOME_STORAGE_KEY = `customPageData:${HOME_PAGE}`;
+const fetchHomeData = async () => { try { const response = await axios.get(API_ENDPOINTS.customPages, { params: { isFrontend: true, page: HOME_PAGE } }); const data = response?.data?.data || response?.data || {}; pageData.value = data; localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(data)); } catch { try { const cached = localStorage.getItem(HOME_STORAGE_KEY); pageData.value = cached ? JSON.parse(cached) : {}; } catch { pageData.value = {}; } } };
+onMounted(() => fetchHomeData());
+</script>
+<style scoped>
+.ui-band-hero{background:linear-gradient(180deg,#fff1f2 0%,#f8fafc 100%)} .ui-band-mint{background:rgba(255,241,242,.5)} .ui-band-sand{background:rgba(255,228,230,.6)} .ui-band-sky{background:rgba(252,231,243,.7)}
+</style>
