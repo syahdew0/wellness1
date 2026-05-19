@@ -1,6 +1,6 @@
 const { defineConfig } = require('@vue/cli-service');
 
 module.exports = defineConfig({
-  publicPath: '/compro18/',
+  publicPath: '/wellness1/',
   transpileDependencies: true,
 });
