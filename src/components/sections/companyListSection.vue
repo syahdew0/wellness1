@@ -1,16 +1,74 @@
-<template><section class="section-container"><div class="section-head"><span class="section-kicker">{{ sectionState.badge }}</span><h2 class="section-title">{{ sectionState.title }}</h2><p class="section-subtitle">{{ sectionState.subtitle }}</p></div><div class="mb-10 flex flex-wrap justify-center gap-3"><button v-for="category in categories" :key="category.id" @click="selectedCategory = category.id" :class="['rounded-full border px-5 py-2.5 text-sm font-semibold',selectedCategory===category.id?'bg-rose-600 text-white':'bg-white']">{{ category.name }}</button></div><div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"><article v-for="listing in filteredListings.slice(0,6)" :key="listing.post_id" class="card cursor-pointer overflow-hidden" @click="$router.push(`/listing/${listing.post_id}`)"><div class="p-6"><h3 class="text-xl font-bold">{{ listing.post?.title }}</h3><p class="text-sm text-slate-600">{{ listing.post?.excerpt }}</p></div></article></div><div class="mt-12 text-center"><router-link :to="sectionState.buttonLink" class="btn-primary">{{ sectionState.buttonText }}</router-link></div></section></template>
+<template>
+    <section class="section-container">
+        <div class="section-head"><span class="section-kicker">{{ sectionState.badge }}</span>
+            <h2 class="section-title">{{ sectionState.title }}</h2>
+            <p class="section-subtitle">{{ sectionState.subtitle }}</p>
+        </div>
+        <div class="mb-10 flex flex-wrap justify-center gap-3"><button v-for="category in categories" :key="category.id"
+                @click="selectedCategory = category.id"
+                :class="['rounded-full border px-5 py-2.5 text-sm font-semibold', selectedCategory === category.id ? 'bg-rose-600 text-white' : 'bg-white']">{{
+                    category.name }}</button></div>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <article v-for="listing in filteredListings.slice(0, 6)" :key="listing.post_id"
+                class="card cursor-pointer overflow-hidden" @click="$router.push(`/listing/${listing.post_id}`)">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold">{{ listing.post?.title }}</h3>
+                    <p class="text-sm text-slate-600">{{ listing.post?.excerpt }}</p>
+                </div>
+            </article>
+        </div>
+        <div class="mt-12 text-center"><router-link :to="sectionState.buttonLink" class="btn-primary">{{
+            sectionState.buttonText }}</router-link></div>
+    </section>
+</template>
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'; import axios from 'axios'; import API_ENDPOINTS from '@/config/api';
-const HOME_PAGE='Home';const HOME_STORAGE_KEY=`customPageData:${HOME_PAGE}`;
+const HOME_PAGE = 'Home';
+const HOME_STORAGE_KEY = `customPageData:${HOME_PAGE}`;
 /* global defineProps */
-const props=defineProps({pageData:{type:Object,default:()=>({})}});
-const baseSection={badge:'Layanan Unggulan',title:'Pilih Perawatan Gigi',subtitle:'Beragam layanan perawatan di klinik kami',buttonText:'Lihat Semua Layanan',buttonLink:'/listing'};
-const sectionState=ref({...baseSection}); const listings=ref([]); const categories=ref([{id:null,name:'Semua'}]); const selectedCategory=ref(null);
-const LISTING_TYPE=window.LISTING_TYPE||1; const LISTING_DISPLAY_IN=window.LISTING_DISPLAY_IN||8;
-const filteredListings=computed(()=>!selectedCategory.value?listings.value:listings.value.filter(l=>l.post?.categories?.some(c=>c.id===selectedCategory.value)));
-const fetchCategories=async()=>{try{const response=await axios.get(API_ENDPOINTS.listings,{params:{listing_type:LISTING_TYPE}});const data=response.data.data||response.data||[];const categoriesMap={};data.filter(l=>l.listing_type===LISTING_TYPE).forEach(l=>(l.post?.categories||[]).forEach(cat=>{if(cat.display_in===LISTING_DISPLAY_IN){categoriesMap[cat.id]={id:cat.id,name:cat.name,slug:cat.slug};}}));categories.value=[{id:null,name:'Semua'},...Object.values(categoriesMap)];}catch(error){console.error('Error fetching categories:',error);}};
-const fetchListings=async()=>{try{const response=await axios.get(API_ENDPOINTS.listings,{params:{listing_type:LISTING_TYPE}});const data=response?.data?.data||response?.data||[];listings.value=data.filter(l=>l.listing_type===LISTING_TYPE);}catch(error){console.warn('Failed to fetch listings',error);}};
-const getCachedHomeData=()=>{try{const raw=localStorage.getItem(HOME_STORAGE_KEY);return raw?JSON.parse(raw):null;}catch{return null;}};const parse=(d)=>{if(!d)return null;if(typeof d==='string'){try{return JSON.parse(d);}catch{return null;}}return d;};const getItemByTag=(tag,allData)=>{const section=allData?.[tag];if(!section)return[];const parseItem=(item)=>parse(item)||{};return Array.isArray(section)?section.map(parseItem):[parseItem(section)];};
-const applyContentFromProps=()=>{const source=(props.pageData&&Object.keys(props.pageData||{}).length&&props.pageData)||getCachedHomeData()||{};const getField=(obj,k1,k2)=>(obj?obj[k1]||obj[k2]||'':'');const badgeObj=getItemByTag('propertyList_badge25',source)[0]||{};const mainObj=getItemByTag('propertyList_main25',source)[0]||{};const buttonObj=getItemByTag('propertyList_button25',source)[0]||{};sectionState.value={badge:getField(badgeObj,'title','content')||baseSection.badge,title:getField(mainObj,'title','heading')||baseSection.title,subtitle:getField(mainObj,'content','subtitle')||baseSection.subtitle,buttonText:getField(buttonObj,'title','text')||baseSection.buttonText,buttonLink:getField(buttonObj,'link','url')||baseSection.buttonLink};};
-watch(()=>props.pageData,()=>applyContentFromProps(),{deep:true,immediate:true}); onMounted(()=>{applyContentFromProps();fetchCategories();fetchListings();});
+const props = defineProps({ pageData: { type: Object, default: () => ({}) } });
+const baseSection = {
+    badge: 'Layanan Unggulan',
+    title: 'Pilih Perawatan Gigi',
+    subtitle: 'Beragam layanan perawatan di klinik kami',
+    buttonText: 'Lihat Semua Layanan', buttonLink: '/listing'
+};
+const sectionState = ref({ ...baseSection });
+const listings = ref([]); const categories = ref([{ id: null, name: 'Semua' }]);
+const selectedCategory = ref(null);
+const LISTING_TYPE = window.LISTING_TYPE || 1;
+const LISTING_DISPLAY_IN = window.LISTING_DISPLAY_IN || 8;
+const filteredListings = computed(() => !selectedCategory.value ? listings.value : listings.value.filter(l => l.post?.categories?.some(c => c.id === selectedCategory.value)));
+const fetchCategories = async () => {
+    try {
+        const response = await axios.get(API_ENDPOINTS.listings, { params: { listing_type: LISTING_TYPE } });
+        const data = response.data.data || response.data || [];
+        const categoriesMap = {};
+        data.filter(l => l.listing_type === LISTING_TYPE).forEach(l => (l.post?.categories || []).forEach(cat => { if (cat.display_in === LISTING_DISPLAY_IN) { categoriesMap[cat.id] = { id: cat.id, name: cat.name, slug: cat.slug }; } })); categories.value = [{ id: null, name: 'Semua' }, ...Object.values(categoriesMap)];
+    } catch (error) { console.error('Error fetching categories:', error); }
+};
+const fetchListings = async () => {
+    try {
+        const response = await axios.get(API_ENDPOINTS.listings, { params: { listing_type: LISTING_TYPE } });
+        const data = response?.data?.data || response?.data || []; listings.value = data.filter(l => l.listing_type === LISTING_TYPE);
+    } catch (error) { console.warn('Failed to fetch listings', error); }
+};
+const getCachedHomeData = () => {
+    try {
+        const raw = localStorage.getItem(HOME_STORAGE_KEY); return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+};
+const parse = (d) => { if (!d) return null; if (typeof d === 'string') { try { return JSON.parse(d); } catch { return null; } } return d; };
+const getItemByTag = (tag, allData) => {
+    const section = allData?.[tag]; if (!section) return [];
+    const parseItem = (item) => parse(item) || {}; return Array.isArray(section) ? section.map(parseItem) : [parseItem(section)];
+};
+const applyContentFromProps = () => {
+    const source = (props.pageData && Object.keys(props.pageData || {}).length && props.pageData) || getCachedHomeData() || {};
+    const getField = (obj, k1, k2) => (obj ? obj[k1] || obj[k2] || '' : '');
+    const badgeObj = getItemByTag('propertyList_badge25', source)[0] || {};
+    const mainObj = getItemByTag('propertyList_main25', source)[0] || {};
+    const buttonObj = getItemByTag('propertyList_button25', source)[0] || {}; sectionState.value = { badge: getField(badgeObj, 'title', 'content') || baseSection.badge, title: getField(mainObj, 'title', 'heading') || baseSection.title, subtitle: getField(mainObj, 'content', 'subtitle') || baseSection.subtitle, buttonText: getField(buttonObj, 'title', 'text') || baseSection.buttonText, buttonLink: getField(buttonObj, 'link', 'url') || baseSection.buttonLink };
+};
+watch(() => props.pageData, () => applyContentFromProps(), { deep: true, immediate: true }); onMounted(() => { applyContentFromProps(); fetchCategories(); fetchListings(); });
 </script>
